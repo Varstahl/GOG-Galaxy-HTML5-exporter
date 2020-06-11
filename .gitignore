@@ -1,0 +1,8 @@
+index.html
+imagelist.txt
+images/*
+!images/.keep
+!templates/index.html
+templates/*custom*
+.github
+.vscode

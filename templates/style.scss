@@ -1,0 +1,142 @@
+@import "inputrange";
+
+/* Variables */
+$cover-width: 140px;
+$cover-spacing: 12px;
+$tooltip-radius: 1em;
+$tooltip-border-lo: 1px;
+$tooltip-border-hi: 3px;
+
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+body {
+    padding: 1rem;
+}
+
+body, #overlay {
+    background: #222;
+}
+
+/* Controls */
+#controls {
+    display: none;
+    position: sticky;
+    z-index: 2;
+    top: 1rem;
+    text-align: center;
+    input {
+        vertical-align: middle;
+        margin: 0 (1rem / 2);
+    }
+    [type='search'] {
+        padding: 0.6em;
+        border-radius: 0.4em;
+        width: 40vw;
+        background: rgba(0, 0, 0, .75);
+        color: #eee;
+        border: none;
+        font-size: 1em;
+    }
+    &.visible {
+        display: block;
+    }
+}
+
+#overlay {
+    z-index: 1;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    opacity: 1;
+    transition: opacity ease 1s;
+    cursor: progress;
+}
+
+/* Game list */
+#games {
+    --cover-width: #{$cover-width};
+    --cover-spacing: #{$cover-spacing};
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(var(--cover-width), max-content));
+    grid-gap: var(--cover-spacing);
+    justify-content: center;
+    padding: initial;
+    &.search-results .game {
+        display: none;
+        &.hit {
+            display: inline-block;
+        }
+    }
+}
+
+/* Game card */
+.game {
+    width: var(--cover-width);
+    display: inline-block;
+    background-size: cover;
+    box-shadow:
+        inset 0px -1px calc(var(--cover-width) * .4) rgba(255,255,255,0.0666),  /* light gloss */
+        3px 4px 9px rgba(0, 0, 0, 0.4);  /* drop shadow */
+    /*aspect-ratio: 342 / 482; /* Currently unsupported by most browsers, gotta hack it with padding-top below */
+    &::after {
+        content: "";
+        display: block;
+        padding-top: 140.93567251461988304093567251462%;
+    }
+    h2 {
+        margin: 0 0 0.6em 0;
+    }
+    &.hover .data {
+        display: block;
+    }
+    .data {
+        position: fixed;
+        top: 0;
+        left: 0;
+        max-width: 33vw;
+        color: white;
+        display: none;
+        text-shadow: 1px 1px 0 black;
+        background: rgba(0, 0, 0, .75);
+        padding: 1.2em;
+        border-radius: #{$tooltip-radius};
+        border: solid calc(#{$tooltip-border-lo} * 2) rgba(255, 255, 255, .8);
+        box-shadow: 4px 7px 12px rgba(0, 0, 0, .66);
+        dl {
+            margin: 0;
+        }
+        dt {
+            display: inline-block;
+            font-weight: bold;
+            &:after {
+                display: inline-block;
+                content: ':';
+            }
+        }
+        dd {
+            margin-left: 0;
+            display: inline;
+            &:after {
+                display: block;
+                content: '';
+            }
+        }
+
+        // Square corners and wider corner borders
+        &.tl { border-width: #{$tooltip-border-lo}; border-top-left-radius: 0; }
+        &.tr { border-width: #{$tooltip-border-lo}; border-top-right-radius: 0; }
+        &.bl { border-width: #{$tooltip-border-lo}; border-bottom-left-radius: 0; }
+        &.br { border-width: #{$tooltip-border-lo}; border-bottom-right-radius: 0; }
+        &.tl, &.bl { border-left-width:   #{$tooltip-border-hi}; }
+        &.tr, &.br { border-right-width:  #{$tooltip-border-hi}; }
+        &.tl, &.tr { border-top-width:    #{$tooltip-border-hi}; }
+        &.bl, &.br { border-bottom-width: #{$tooltip-border-hi}; }
+    }
+}
