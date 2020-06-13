@@ -122,6 +122,23 @@ def delist(s, bConvertToString=True):
 	s = literal_eval(s)
 	return s if not bConvertToString else ', '.join(s)
 
+def pathFromURL(imageURL):
+	""" Transforms an image URL into a list of relative image paths """
+	image = list(pathFromURL.namefinder.search(imageURL).groups())
+
+	# Transform query parameters into wget-like paths
+	if not image[1]:
+		image.pop(1)
+	else:
+		image[1] = '{}@{}'.format(image[0], image[1])
+
+	# Relative path transformation
+	for i in range(0, len(image)):
+		image[i] = 'images/' + image[i]
+
+	return image
+pathFromURL.namefinder = re.compile(r'/([^/]+?)(?:\?([^/]+))?$')  # Compiled for better efficiency
+
 def Main(args):
 	games = []
 	articles = '(' + '|'.join([
@@ -166,6 +183,7 @@ def Main(args):
 
 			if '_defaultImage' not in row:
 				continue
+			row['_defaultImagePaths'] = pathFromURL(row['_defaultImage'])
 
 			# Fix common problems with titles
 			for i in titleReplaceList:
@@ -201,16 +219,27 @@ def Main(args):
 		except: pass
 
 		# Find the best match for the image
+		bAnyNewImage = False
 		try:
 			with open(args.fileImageList, "w", encoding='utf-8') as ll:
 				for game in games:
-					ll.write(game['_defaultImage'] + '\n')
+					bFound = False
+					for image in game['_defaultImagePaths']:
+						if exists(image):
+							bFound = True
+							break
+					if not bFound:
+						bAnyNewImage = True
+						ll.write(game['_defaultImage'] + '\n')
 		except FileNotFoundError:
 			print('Unable to write to “{}”, make sure the path exists and you have permissions'.format(args.fileImageList))
 			return
 
 		# Reset header for future use and notify success
-		print('Image list exported, it\'s suggested to download with `wget -nc -P images -i "{}"`'.format(args.fileImageList))
+		if bAnyNewImage:
+			print('Image list exported, it\'s suggested to download with `wget -nc -P images -i "{}"`'.format(args.fileImageList))
+		else:
+			print('No new images to download')
 
 	# Export HTML5
 	if args.htmlExport:
