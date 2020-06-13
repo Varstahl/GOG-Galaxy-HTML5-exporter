@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+from ast import literal_eval
 from html import escape
 import json
 from math import floor
@@ -97,7 +98,10 @@ def repeatable_fields(mo):
 
 def duration(t):
 	""" Converts minutes into a "Xd Yh Zm" format """
-	t = int(t)
+	try:
+		t = int(t)
+	except:
+		t = 0
 	m = floor(t % 60)
 	h = floor((t / 60) % 24)
 	d = floor(t / 1440)
@@ -111,9 +115,12 @@ def html(s):
 	""" HTML sanitisation """
 	return re.sub(r'[ \t]*\n', '<br/>', escape(s))
 
-def delist(s):
+def delist(s, bConvertToString=True):
 	""" Explodes a list into a nicely spaced list """
-	return ', '.join([html(x) for x in s.split(',')]).replace('  ', ' ')
+	if not s:
+		return s
+	s = literal_eval(s)
+	return s if not bConvertToString else ', '.join(s)
 
 def Main(args):
 	games = []
@@ -268,7 +275,7 @@ def Main(args):
 				}))
 			print('HTML5 list exported')
 		except FileNotFoundError:
-			print('Unable to write to “{}”, make sure the path exists and you have permissions'.format(args.fileHTML))
+			print('Unable to write to “{}”, make sure that the path exists and that you have the write permissions'.format(args.fileHTML))
 			return
 
 if "__main__" == __name__:
