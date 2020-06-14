@@ -7,7 +7,7 @@ from html import escape
 import json
 from math import floor
 from operator import itemgetter
-from os import getcwd, makedirs
+from os import getcwd, makedirs, rename
 from os.path import join, exists
 import re
 from string import Formatter
@@ -219,27 +219,25 @@ def Main(args):
 		except: pass
 
 		# Find the best match for the image
-		bAnyNewImage = False
-		try:
-			with open(args.fileImageList, "w", encoding='utf-8') as ll:
-				for game in games:
-					bFound = False
-					for image in game['_defaultImagePaths']:
-						if exists(image):
-							bFound = True
-							break
-					if not bFound:
-						bAnyNewImage = True
-						ll.write(game['_defaultImage'] + '\n')
-		except FileNotFoundError:
-			print('Unable to write to “{}”, make sure the path exists and you have permissions'.format(args.fileImageList))
-			return
+		images = []
+		for game in games:
+			bFound = False
+			for image in game['_defaultImagePaths']:
+				if exists(image):
+					bFound = True
+					break
+			if not bFound:
+				images.append(game['_defaultImage'])
 
-		# Reset header for future use and notify success
-		if bAnyNewImage:
-			print('Image list exported, it\'s suggested to download with `wget -nc -P images -i "{}"`'.format(args.fileImageList))
-		else:
+		if not images:
 			print('No new images to download')
+		else:
+			try:
+				with open(args.fileImageList, "w", encoding='utf-8') as ll:
+					ll.write('\n'.join(images))
+				print('Image list exported, it\'s suggested to download with `wget -nc -P images -i "{}"`'.format(args.fileImageList))
+			except FileNotFoundError:
+				print('Unable to write to “{}”, make sure that the path exists and that you have the write permissions'.format(args.fileImageList))
 
 	# Export HTML5
 	if args.htmlExport:
@@ -264,9 +262,11 @@ def Main(args):
 		games_html = ''
 		games_css = ''
 		for game in games:
-			# Image URL modifier
-			imgFN = re.sub(r'^[^/]*//[^/]*/', '', game['_defaultImage'].replace('?namespace', '@namespace'))
-			game['_imageURL'] = 'images/{}'.format(imgFN)
+			# Image renamer
+			for p in range(1, len(game['_defaultImagePaths'])):
+				if exists(game['_defaultImagePaths'][p]):
+					rename(game['_defaultImagePaths'][p], game['_defaultImagePaths'][0])
+
 			params = {
 				'id': gameID,
 				'title': html(game['title']),
@@ -283,7 +283,7 @@ def Main(args):
 			}
 
 			game_html = templates['game'].format('a', **params)
-			games_css += '#game-{0}{{order:{0};background-image:url("{1}");}}'.format(gameID, game['_imageURL'])
+			games_css += '#game-{0}{{order:{0};background-image:url("{1}");}}'.format(gameID, game['_defaultImagePaths'][0])
 			gameID += 1
 
 			# Remove parameters already printed

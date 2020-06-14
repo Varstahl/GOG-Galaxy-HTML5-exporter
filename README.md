@@ -40,12 +40,12 @@ You can open the controls by pressing `CTRL`+`Space`. From there you can search 
   * csv
   * natsort
   * unidecode
-* A CSV exported through [GOG Galaxy Export Script](https://github.com/AB1908/GOG-Galaxy-Export-Script) with the [AB1908#23](https://github.com/AB1908/GOG-Galaxy-Export-Script/pull/23) PR merged in (temporarily also available [here](https://raw.githubusercontent.com/Varstahl/GOG-Galaxy-Export-Script/master/galaxy_library_export.py) ready to go)
-* `wget`, if you want the images
+* A CSV exported through [GOG Galaxy Export Script](https://github.com/AB1908/GOG-Galaxy-Export-Script)
+* `wget`, if you want the images in an easy way
 
 ## Known current limitations
 
-* Only works properly when the CSV is extracted with the `-a` command
+* Works better when the CSV is extracted with the `-a` command
 * Game data toopltip is not pretty enough
 * The HTML/Markdown in the game's summary is treated as pure text
 * The search results aren't weighted yet, and only consider titles
