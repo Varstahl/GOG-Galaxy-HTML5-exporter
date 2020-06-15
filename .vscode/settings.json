@@ -7,4 +7,9 @@
         },
     ],
     "liveSassCompile.settings.generateMap": false,
+    "htmlhint.options": {
+        "htmlhint.options": {
+            "attr-value-double-quotes":  true,
+        }
+    },
 }

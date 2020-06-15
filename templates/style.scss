@@ -6,6 +6,9 @@ $cover-spacing: 12px;
 $tooltip-radius: 1em;
 $tooltip-border-lo: 1px;
 $tooltip-border-hi: 3px;
+$data-font-size: 1em;
+$data-interlinea: 1.3;
+$data-margin: 1em * $data-interlinea;
 
 html, body {
     margin: 0;
@@ -19,6 +22,11 @@ body {
 
 body, #overlay {
     background: #222;
+}
+
+a {
+    color: rgb(45, 150, 236) !important;
+    text-decoration: none;
 }
 
 /* Controls */
@@ -109,6 +117,8 @@ body, #overlay {
         border-radius: #{$tooltip-radius};
         border: solid calc(#{$tooltip-border-lo} * 2) rgba(255, 255, 255, .8);
         box-shadow: 4px 7px 12px rgba(0, 0, 0, .66);
+        font-size: #{$data-font-size};
+        line-height: #{$data-interlinea};
         dl {
             margin: 0;
         }
@@ -138,5 +148,22 @@ body, #overlay {
         &.tr, &.br { border-right-width:  #{$tooltip-border-hi}; }
         &.tl, &.tr { border-top-width:    #{$tooltip-border-hi}; }
         &.bl, &.br { border-bottom-width: #{$tooltip-border-hi}; }
+
+        .description {
+            margin: #{$data-margin} 0;
+            p, ul, ol {
+                margin: 0;
+                padding: 0;
+                font-size: 1em;
+            }
+            ul, ol {
+                padding-left: #{$data-margin};
+            }
+            .spaced- {
+                @for $i from 1 through 5 {
+                    &#{$i} { margin-top: #{$i * $data-margin}; }
+                }
+            }
+        }
     }
 }

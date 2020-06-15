@@ -4,6 +4,7 @@
 import argparse
 from ast import literal_eval
 from html import escape
+from html.parser import HTMLParser
 import json
 from math import floor
 from operator import itemgetter
@@ -40,9 +41,28 @@ class Arguments():
 
 	def __getattr__(self, name):
 		ret = getattr(self.__args, name)
-		if isinstance(ret, list) and (1 == len(ret)):
+		if isinstance(ret, list) and (1 == len(ret)) and (int != type(ret[0])):
 			ret = ret[0]
 		return ret
+
+class AttributesParser(HTMLParser):
+    """ Custom HTML parser that stores [tagName, [attributes]] """
+    __whitespace = re.compile(r'\s+')
+
+    def feed(self, data):
+        self.attrs = []
+        super().feed(data)
+        return self.attrs
+
+    def handle_starttag(self, tag, attrs):
+        self.inLink = False
+        self.attrs.append([tag])
+        index = len(self.attrs) - 1
+        for attr in attrs:
+            attr = list(attr)
+            if 'class' == attr[0]:
+                attr[1] = self.__whitespace.split(attr[1])
+            self.attrs[index].append(attr)
 
 class CustomStringFormatter(str):
 	""" Custom template formatters, allows non used parameters to be left alone
@@ -111,9 +131,104 @@ def duration(t):
 	if d: t = str(d) + 'd ' + t
 	return t.strip()
 
-def html(s):
-	""" HTML sanitisation """
-	return re.sub(r'[ \t]*\n', '<br/>', escape(s))
+def clean(s, bPurge=True):
+	s = s.strip()
+	for rx in clean.rx:
+		s = rx[0].sub(rx[1], s)
+	return escape(s) if bPurge else s
+clean.rx = [
+	(re.compile(r'\.\.\.'), '…'),
+	(re.compile(r'\s+-\s+'), ' – '),
+	(re.compile(r'\u0092'), '’'),  # PU2
+	(re.compile(r'\u0093'), '“'),  # STS
+	(re.compile(r'\u0094'), '”'),  # CCH
+	(re.compile(r'\s*\u0097\s*'), ' – '),  # CCH
+]
+
+def description(s):
+	# Fix a bit of mess and split by line break
+	s = clean(s, False)
+	if (2 == description.quotes.subn('', s)[1]) and ('"' == s[0]) and ('"' == s[-1]):
+		s = s[1:-1].strip()
+	s = s.replace('\\n', '\n')
+	s = description.paragraphs['replaceClosed'].sub('\n', s)
+	s = description.paragraphs['replaceOpen'].sub('\n', s)
+	s = description.paragraphs['clear'].sub(r'\n\1', s)
+	s = s.strip().split('\n')
+
+	# Analyse the strings by row
+	for i in range(0, len(s)):
+		s[i] = s[i].strip()  # Trim whitespace
+
+		# Calculate the number of blank lines before the element and create a CSS class accordingly
+		breaks = 0
+		while True:
+			if (0 > (i-1-breaks)) or len(s[i-1-breaks]):
+				break
+			breaks += 1
+		breaks = 'spaced-{}'.format(max(0, min(1, breaks))) if (0 < breaks) and (0 < i) else ''
+
+		# Ignore empty paragraphs
+		if s[i]:
+			if description.list.match(s[i]):
+				# Convert into a list instead of a string to prepare for the possibility
+				# of implementing sub-lists
+				s[i] = ['<li{}>'.format(' class="{}"'.format(breaks) if breaks else ''), description.list.sub('', s[i]), '</li>']
+			else:
+				# Transform the paragraph(?) tag
+				startTag = description.paragraphs['exists'].match(s[i])
+				if startTag:
+					startTag = description.parser.feed(startTag.group(1))
+					s[i] = description.paragraphs['exists'].sub('', s[i])
+				else:
+					startTag = [['p', ['class', []]]]
+
+				# Inject spacer class
+				if breaks:
+					try:
+						index = next(startTag[0].index(x) for x in startTag[0] if x[0] == 'class')
+						startTag[0][index][1].append(breaks)
+					except StopIteration:
+						startTag[0].append(['class', [breaks]])
+
+				# Reassemble the startTag
+				tag = startTag[0].pop(0)
+				for attr in startTag[0]:
+					if attr and attr[1]:
+						if list == type(attr[1]):
+							attr[1] = ' '.join(set(attr[1]))
+						tag += ' {0}={2}{1}{2}'.format(*attr, "'" if '"' in attr[1] else '"')
+				s[i] = '<' + tag + '>' + s[i] + '</p>'
+
+	# Rebuild the description
+	ret = ''
+	bInsideList = False
+	for i in range(0, len(s)):
+		if s[i]:
+			# Paragraphs
+			if str == type(s[i]):
+				if bInsideList:
+					ret += '</ul>'
+					bInsideList = False
+				ret += s[i]
+			else:
+				if not bInsideList:
+					ret += '<ul>'
+					bInsideList = True
+				ret += ''.join(s[i])
+	if bInsideList:
+		ret += '</ul>'
+	return ret
+description.parser = AttributesParser()
+description.quotes = re.compile('"')
+description.list = re.compile(r'^[*-]\s*')
+description.paragraphs = {
+	'open': re.compile(r'<p[^>]*>'),
+	'replaceClosed': re.compile(r'\s*</p>\s*'),
+	'replaceOpen': re.compile(r'\s*<p>\s*'),
+	'clear': re.compile(r'\s*(<p[^>]*>)\s*'),
+	'exists': re.compile(r'^\s*(<p[^>]*>)\s*'),
+}
 
 def delist(s, bConvertToString=True):
 	""" Explodes a list into a nicely spaced list """
@@ -169,7 +284,7 @@ def Main(args):
 	]  # Each list group creates a new permutation of the search string
 
 	# Build the game data list
-	with open(args.fileCSV, "r", encoding='utf-8', newline='') as csvfile:
+	with open(args.fileCSV, 'r', encoding='utf-8', newline='') as csvfile:
 		for row in DictReader(csvfile, delimiter=args.delimiter):
 			try:
 				# Set the default image
@@ -259,9 +374,14 @@ def Main(args):
 
 		# Single game HTML
 		gameID = len(games)  # start the ids from N (games count), to allow re-ordering in the range [0:N-1]
+		gameID = (gameID + 1000 - (gameID % 1000))  # Round it up to the thousands
 		games_html = ''
 		games_css = ''
 		for game in games:
+			gameID += 1
+			if args.debugEntryID and (gameID not in args.debugEntryID):
+				continue
+
 			# Image renamer
 			for p in range(1, len(game['_defaultImagePaths'])):
 				if exists(game['_defaultImagePaths'][p]):
@@ -269,14 +389,14 @@ def Main(args):
 
 			params = {
 				'id': gameID,
-				'title': html(game['title']),
-				'description': html(game['summary']),
+				'title': clean(game['title']),
+				'description': description(game['summary']),
 				'search': json.dumps(game['_searchable']).replace("'", "&apos;"),
-				'developers': delist(game['developers']),
-				'platforms': delist(game['platformList']),
-				'score': html(game['criticsScore']),
-				'publishers': delist(game['publishers']),
-				'released': html(game['releaseDate']),
+				'developers': clean(delist(game['developers'])),
+				'platforms': clean(delist(game['platformList'])),
+				'score': game['criticsScore'],
+				'publishers': clean(delist(game['publishers'])),
+				'released': game['releaseDate'],
 				'genres': delist(game['genres']),
 				'themes': delist(game['themes']),
 				'playtime': duration(game['gameMins'])
@@ -284,7 +404,6 @@ def Main(args):
 
 			game_html = templates['game'].format('a', **params)
 			games_css += '#game-{0}{{order:{0};background-image:url("{1}");}}'.format(gameID, game['_defaultImagePaths'][0])
-			gameID += 1
 
 			# Remove parameters already printed
 			repeatable_fields.params = {x:params[x] for x in params if x not in templates['game'].used_keys() and isinstance(x, str)}
@@ -297,9 +416,9 @@ def Main(args):
 				f.write(templates['index'].format(**{
 					'language': 'en',
 					'title': args.title,
+					'imageCSS': '' if args.debugEntryID else games_css,
 					'style': css,
 					'javascript': js,
-					'imageCSS': games_css,
 					'content': games_html
 				}))
 			print('HTML5 list exported')
@@ -383,11 +502,22 @@ if "__main__" == __name__:
 				}
 			],
 			[['--embed'], ba('embed', 'embeds CSS & JS instead of linking the resources')],
+			[
+				['--debug'],
+				{
+					'default': False,
+					'type': int,
+					'nargs': '+',
+					'required': False,
+					'help': argparse.SUPPRESS,
+					'dest': 'debugEntryID',
+				}
+			],
 		],
 		description='GOG Galaxy 2 export converter: parses the “GOG Galaxy 2 exporter” CSV to generate a list of cover images and/or a searchable HTML5 list of games.'
 	)
 
-	if args.anyOption(['delimiter', 'fileCSV', 'fileImageList', 'fileHTML', 'title']):
+	if args.anyOption(['delimiter', 'fileCSV', 'fileImageList', 'fileHTML', 'title', 'debugEntryID']):
 		if exists(args.fileCSV):
 			Main(args)
 		else:

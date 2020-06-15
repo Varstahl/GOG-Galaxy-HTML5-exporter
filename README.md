@@ -47,5 +47,4 @@ You can open the controls by pressing `CTRL`+`Space`. From there you can search 
 
 * Works better when the CSV is extracted with the `-a` command
 * Game data toopltip is not pretty enough
-* The HTML/Markdown in the game's summary is treated as pure text
 * The search results aren't weighted yet, and only consider titles
