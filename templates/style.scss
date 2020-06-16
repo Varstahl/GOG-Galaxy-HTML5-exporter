@@ -1,4 +1,5 @@
 @import "inputrange";
+@import "robotofonts";
 
 /* Variables */
 $cover-width: 140px;
@@ -7,8 +8,10 @@ $tooltip-radius: 1em;
 $tooltip-border-lo: 1px;
 $tooltip-border-hi: 3px;
 $data-font-size: 1em;
-$data-interlinea: 1.3;
+$data-interlinea: 1.4;
 $data-margin: 1em * $data-interlinea;
+$family1: 'Roboto';
+$family2: 'Roboto Slab';
 
 html, body {
     margin: 0;
@@ -18,6 +21,8 @@ html, body {
 
 body {
     padding: 1rem;
+    font-family: $family2;
+    color: #eee;
 }
 
 body, #overlay {
@@ -76,6 +81,10 @@ a {
     grid-gap: var(--cover-spacing);
     justify-content: center;
     padding: initial;
+    h2, dt {
+        font-family: $family1;
+        font-variant: small-caps;
+    }
     &.search-results .game {
         display: none;
         &.hit {
@@ -98,9 +107,6 @@ a {
         display: block;
         padding-top: 140.93567251461988304093567251462%;
     }
-    h2 {
-        margin: 0 0 0.6em 0;
-    }
     &.hover .data {
         display: block;
     }
@@ -109,7 +115,6 @@ a {
         top: 0;
         left: 0;
         max-width: 33vw;
-        color: white;
         display: none;
         text-shadow: 1px 1px 0 black;
         background: rgba(0, 0, 0, .75);
@@ -119,15 +124,24 @@ a {
         box-shadow: 4px 7px 12px rgba(0, 0, 0, .66);
         font-size: #{$data-font-size};
         line-height: #{$data-interlinea};
+        h2 {
+            font-size: 160%;
+            margin: 0 0 #{$data-margin / 1.6} 0;
+            font-weight: normal;
+            color: white;
+        }
         dl {
-            margin: 0;
+            margin: #{$data-margin} 0 0 0;
         }
         dt {
             display: inline-block;
             font-weight: bold;
+            font-size: 120%;
+            color: #bbb;
             &:after {
                 display: inline-block;
                 content: ':';
+                font-size: 80%;
             }
         }
         dd {
@@ -150,7 +164,6 @@ a {
         &.bl, &.br { border-bottom-width: #{$tooltip-border-hi}; }
 
         .description {
-            margin: #{$data-margin} 0;
             p, ul, ol {
                 margin: 0;
                 padding: 0;
