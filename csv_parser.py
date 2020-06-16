@@ -221,7 +221,7 @@ def description(s):
 	return ret
 description.parser = AttributesParser()
 description.quotes = re.compile('"')
-description.list = re.compile(r'^[*-]\s*')
+description.list = re.compile(r'^[*•-]\s*')
 description.paragraphs = {
 	'open': re.compile(r'<p[^>]*>'),
 	'replaceClosed': re.compile(r'\s*</p>\s*'),
@@ -253,6 +253,22 @@ def pathFromURL(imageURL):
 
 	return image
 pathFromURL.namefinder = re.compile(r'/([^/]+?)(?:\?([^/]+))?$')  # Compiled for better efficiency
+
+def platformIcons(platformNames, bIconName=False):
+	""" Tag placeholders for SVG symbols generator """
+	icons = ''
+	for platformName in platformNames:
+		if bIconName:
+			iconName = platformName
+		else:
+			iconName = 'generic'
+			try:
+				iconName = next(x for x in platformIcons.short if platformIcons.short[x]==platformName)
+			except StopIteration: pass
+		icons += '<i class="pi pi-{}"></i>'.format(iconName if iconName in platformIcons.icons else 'generic pi-{}'.format(iconName))
+	return icons
+platformIcons.icons = ['apple-arcade', 'battlenet', 'bethesda', 'discord', 'epic', 'ffxiv', 'gamecube', 'generic', 'gog', 'gw2', 'humble', 'itch', 'minecraft', 'nintendo-switch', 'nintendo', 'origin', 'paradox', 'pathofexile', 'playstation2', 'psn', 'rockstar', 'steam', 'twitch', 'uplay', 'wargaming', 'xboxone']
+platformIcons.short = {"3do": "3DO Interactive Multiplayer", "3ds": "Nintendo 3DS", "aion": "Aion", "aionl": "Aion: Legions of War", "amazon": "Amazon", "amiga": "Amiga", "arc": "ARC", "atari": "Atari 2600", "battlenet": "Battle.net", "bb": "BestBuy", "beamdog": "Beamdog", "bethesda": "Bethesda.net", "blade": "Blade & Soul", "c64": "Commodore 64", "d2d": "Direct2Drive", "dc": "Dreamcast", "discord": "Discord", "dotemu": "DotEmu", "egg": "Newegg", "elites": "Elite Dangerous", "epic": "Epic Games Store", "eso": "The Elder Scrolls Online", "fanatical": "Fanatical", "ffxi": "Final Fantasy XI", "ffxiv": "Final Fantasy XIV", "fxstore": "Placeholder", "gamehouse": "GameHouse", "gamesessions": "GameSessions", "gameuk": "GAME UK", "generic": "Other", "gg": "GamersGate", "glyph": "Trion World", "gmg": "Green Man Gaming", "gog": "GOG", "gw": "Guild Wars", "gw2": "Guild Wars 2", "humble": "Humble Bundle", "indiegala": "IndieGala", "itch": "Itch.io", "jaguar": "Atari Jaguar", "kartridge": "Kartridge", "lin2": "Lineage 2", "minecraft": "Minecraft", "n64": "Nintendo 64", "ncube": "Nintendo GameCube", "nds": "Nintendo DS", "neo": "NeoGeo", "nes": "Nintendo Entertainment System", "ngameboy": "Game Boy", "nswitch": "Nintendo Switch", "nuuvem": "Nuuvem", "nwii": "Wii", "nwiiu": "Wii U", "oculus": "Oculus", "origin": "Origin", "paradox": "Paradox Plaza", "pathofexile": "Path of Exile", "pce": "PC Engine", "playasia": "Play-Asia", "playfire": "Playfire", "ps2": "PlayStation 2", "psn": "PlayStation Network", "psp": "PlayStation Portable", "psvita": "PlayStation Vita", "psx": "PlayStation", "riot": "Riot", "rockstar": "Rockstar Games Launcher", "saturn": "Sega Saturn", "sega32": "32X", "segacd": "Sega CD", "segag": "Sega Genesis", "sms": "Sega Master System", "snes": "Super Nintendo Entertainment System", "stadia": "Google Stadia", "star": "Star Citizen", "steam": "Steam", "test": "Test", "totalwar": "Total War", "twitch": "Twitch", "unknown": "Unknown", "uplay": "Uplay", "vision": "ColecoVision", "wargaming": "Wargaming", "weplay": "WePlay", "winstore": "Windows Store", "xboxog": "Xbox", "xboxone": "Xbox Live", "zx": "ZX Spectrum PC"}
 
 def Main(args):
 	games = []
@@ -359,18 +375,32 @@ def Main(args):
 		# Load the templates
 		templates = {}
 		for k,l in {
-			'index': ['index', '.html'],
-			'game': ['game', '.html'],
-			'script': ['script', '.js'],
-			'style': ['style', '.css'],
+			'index': ['templates', 'index', '.html'],
+			'game': ['templates', 'game', '.html'],
+			'script': ['templates', 'script', '.js'],
+			'style': ['templates', 'style', '.css'],
+			'platforms': ['assets/icons', 'platforms', '.svg'],
 		}.items():
-			fn = 'templates/{0}{2}{1}'.format(l[0], l[1], '.custom' if exists('templates/{0}.custom{1}'.format(l[0], l[1])) else '')
+			fn = '{0}/{1}{3}{2}'.format(l[0], l[1], l[2], '.custom' if exists('{0}/{1}.custom{2}'.format(l[0], l[1], l[2])) else '')
 			if args.embed or (k not in ['script', 'style']):
 				with open(fn, 'r', encoding='utf-8') as f:
 					templates[k] = CustomStringFormatter(f.read(-1))
 			else:
 				templates[k] = fn
 				continue
+		templates['platforms'] = re.sub(r'\s*<!--.*?-->\s*', '', templates['platforms'])
+
+		# Debug HTML
+		if False is args.debugEntryID:
+			debug_html = ''
+		else:
+			debug_html = '<div id="debug">'
+
+			# Place all platform icons
+			debug_html += platformIcons(re.findall(r'<symbol[^>]*id="icon-platform-([^"]+)"', templates['platforms']), True)
+
+			# Remove empty SVGs
+			debug_html += '</div>'
 
 		# Single game HTML
 		gameID = len(games)  # start the ids from N (games count), to allow re-ordering in the range [0:N-1]
@@ -393,7 +423,7 @@ def Main(args):
 				'description': description(game['summary']),
 				'search': json.dumps(game['_searchable']).replace("'", "&apos;"),
 				'developers': clean(delist(game['developers'])),
-				'platforms': clean(delist(game['platformList'])),
+				'platforms': platformIcons(delist(game['platformList'], False)),
 				'score': game['criticsScore'],
 				'publishers': clean(delist(game['publishers'])),
 				'released': game['releaseDate'],
@@ -419,7 +449,9 @@ def Main(args):
 					'imageCSS': '' if args.debugEntryID else games_css,
 					'style': css,
 					'javascript': js,
-					'content': games_html
+					'content': games_html,
+					'platformIcons': templates['platforms'],
+					'debug': debug_html,
 				}))
 			print('HTML5 list exported')
 		except FileNotFoundError:
@@ -507,7 +539,7 @@ if "__main__" == __name__:
 				{
 					'default': False,
 					'type': int,
-					'nargs': '+',
+					'nargs': '*',
 					'required': False,
 					'help': argparse.SUPPRESS,
 					'dest': 'debugEntryID',

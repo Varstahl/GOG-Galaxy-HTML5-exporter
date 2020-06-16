@@ -12,6 +12,11 @@ $data-interlinea: 1.4;
 $data-margin: 1em * $data-interlinea;
 $family1: 'Roboto';
 $family2: 'Roboto Slab';
+$svg-height: 2em;
+$color: #fff;
+$highlight: #d18bf3;
+$color-darker: darken($color, 12%);
+$color-dark: darken($color, 24%);
 
 html, body {
     margin: 0;
@@ -22,7 +27,8 @@ html, body {
 body {
     padding: 1rem;
     font-family: $family2;
-    color: #eee;
+    color: $color-darker;
+    fill: $color-darker;
 }
 
 body, #overlay {
@@ -32,6 +38,16 @@ body, #overlay {
 a {
     color: rgb(45, 150, 236) !important;
     text-decoration: none;
+}
+
+/* Platform icons */
+svg.platforms {
+    height: #{$svg-height};
+    vertical-align: middle;
+    /* Filled icons look brighter to the eye compared to the rest of the elements,
+       so we rebalance the optical illusion to the eye */
+    fill: darken($highlight, 8%);
+    &.pi-playstation2 { height: #{0.5 * $svg-height}; }
 }
 
 /* Controls */
@@ -50,7 +66,7 @@ a {
         border-radius: 0.4em;
         width: 40vw;
         background: rgba(0, 0, 0, .75);
-        color: #eee;
+        color: $color-darker;
         border: none;
         font-size: 1em;
     }
@@ -126,9 +142,9 @@ a {
         line-height: #{$data-interlinea};
         h2 {
             font-size: 160%;
-            margin: 0 0 #{$data-margin / 1.6} 0;
+            margin: 0;
             font-weight: normal;
-            color: white;
+            color: $color;
         }
         dl {
             margin: #{$data-margin} 0 0 0;
@@ -137,7 +153,7 @@ a {
             display: inline-block;
             font-weight: bold;
             font-size: 120%;
-            color: #bbb;
+            color: $highlight;
             &:after {
                 display: inline-block;
                 content: ':';
@@ -147,6 +163,7 @@ a {
         dd {
             margin-left: 0;
             display: inline;
+            color: $color-dark;
             &:after {
                 display: block;
                 content: '';
@@ -164,6 +181,7 @@ a {
         &.bl, &.br { border-bottom-width: #{$tooltip-border-hi}; }
 
         .description {
+            margin-top: #{$data-margin};
             p, ul, ol {
                 margin: 0;
                 padding: 0;

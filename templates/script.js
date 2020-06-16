@@ -13,6 +13,28 @@ document.addEventListener("DOMContentLoaded", function() {
         bCursorShow = true,             // Should the cursor be shown again?
         lastElement = {'id': null};     // Last element with an active tooltip
 
+    /* Python equivalent of string formatting */
+    String.prototype.format = function() {
+        var args = arguments;
+        this.unkeyed_index = 0;
+        return this.replace(/\{(\w*)\}/g, function(match, key) { 
+            if (key === '') {
+            key = this.unkeyed_index;
+            this.unkeyed_index++
+            }
+            if (key == +key) {
+                return args[key] !== 'undefined' ? args[key] : match;
+            } else {
+                for (var i = 0; i < args.length; i++) {
+                    if (typeof args[i] === 'object' && typeof args[i][key] !== 'undefined') {
+                        return args[i][key];
+                    }
+                }
+                return match;
+            }
+        }.bind(this));
+    };
+
     function updateTooltipPos(x, y) {
         if (updateTooltipPos.tooltip) {
             const t = updateTooltipPos.tooltip;
@@ -78,8 +100,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Show/hide the input controls
     function onToggleControls(event) {
-        if (event.ctrlKey && (32 == event.keyCode))
-            controls.classList.toggle('visible');
+        if (event.ctrlKey) {
+            if (32 == event.keyCode) {
+                controls.classList.toggle('visible');  // Ctrl+Space
+            } else if (70 == event.keyCode) {
+                controls.classList.add('visible');  // Ctrl+F
+            }
+
+            // Focus on the search bar, if visible
+            if (controls.classList.contains('visible'))
+                gameSearch.focus();
+        }
     }
 
     // Triggers `onSearch` to clear the search results
@@ -198,6 +229,30 @@ document.addEventListener("DOMContentLoaded", function() {
     hookRangeChange(gameSpacing, onChangeSpacing);
     gameSearch.addEventListener('blur', onSearchCancel);
     gameSearch.addEventListener('input', onSearch);
+
+    // Replace the SVG icon placeholders in reverse order to avoid position inconsistencies and skipped icons
+    (function replaceSVGplaceholders() {
+        p = {}  // cache
+        // class="pi pi-[platformName]"
+        const icons = document.getElementsByClassName('pi');
+        for (var i = icons.length-1; 0 <= i; i--) {
+            const platform = icons[i].classList[1].substr(3);
+            const platforms = Array.from(icons[i].classList).slice(1).join(' ');
+            try {
+                if (!p.hasOwnProperty(platform)) {
+                    // Maintain the symbols' view box and aspect ratios
+                    const symbol = document.getElementById('icon-platform-' + platform);
+                    p[platform] = '<svg class="platforms {1}" preserveAspectRatio="{2}" viewBox="{3}"><use xlink:href="#icon-platform-{0}" /></svg>'.format(
+                        platform,
+                        platforms,
+                        symbol.getAttribute('preserveAspectRatio'),
+                        symbol.getAttribute('viewBox'),
+                    );
+                }
+                icons[i].outerHTML = p[platform];
+            } catch {}
+        }
+    })();
 
     // Load finished, animate the game list in
     overlay.style.opacity = 0;
