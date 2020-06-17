@@ -136,7 +136,7 @@ svg.platforms {
         background: rgba(0, 0, 0, .75);
         padding: 1.2em;
         border-radius: #{$tooltip-radius};
-        border: solid calc(#{$tooltip-border-lo} * 2) rgba(255, 255, 255, .8);
+        border: solid calc(#{$tooltip-border-lo} * 2) rgba(lighten(#d18bf3, 15%), .8);
         box-shadow: 4px 7px 12px rgba(0, 0, 0, .66);
         font-size: #{$data-font-size};
         line-height: #{$data-interlinea};
