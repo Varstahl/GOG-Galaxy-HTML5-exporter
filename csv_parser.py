@@ -9,7 +9,7 @@ from html.parser import HTMLParser
 import json
 from math import floor
 from operator import itemgetter
-from os import getcwd, makedirs, rename
+from os import getcwd, makedirs, rename, remove
 from os.path import join, exists
 import re
 from string import Formatter
@@ -439,6 +439,9 @@ def Main(args, options):
 				images.append(game['_defaultImage'])
 
 		if not images:
+			try:
+				remove(args.fileImageList)
+			except: pass
 			print('No new images to download')
 		else:
 			try:
@@ -493,7 +496,12 @@ def Main(args, options):
 			# Image renamer
 			for p in range(1, len(game['_defaultImagePaths'])):
 				if exists(game['_defaultImagePaths'][p]):
-					rename(game['_defaultImagePaths'][p], game['_defaultImagePaths'][0])
+					try:
+						rename(game['_defaultImagePaths'][p], game['_defaultImagePaths'][0])
+					except:
+						try:
+							remove(game['_defaultImagePaths'][p])
+						except: pass
 
 			params = {
 				'id': gameID,
