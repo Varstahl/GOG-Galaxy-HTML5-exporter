@@ -6,3 +6,4 @@ images/*
 templates/*custom*
 .github
 .vscode
+options.json

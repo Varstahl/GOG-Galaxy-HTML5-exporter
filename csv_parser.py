@@ -3,6 +3,7 @@
 
 import argparse
 from ast import literal_eval
+from functools import cmp_to_key
 from html import escape
 from html.parser import HTMLParser
 import json
@@ -91,6 +92,27 @@ class CustomStringFormatter(str):
 	def format(self, *args, **kwargs):
 		self._formatter._usedArgs = set()
 		return self._formatter.format(self, *args, **kwargs)
+
+def loadOptions():
+	# Try to load and parse the options file
+	o = {}
+	try:
+		if exists('options.json'):
+			with open('options.json', 'r', encoding='utf-8') as f:
+				o = f.read(-1)
+			o = loadOptions.removeComments.sub('', o, re.DOTALL)
+			o = json.loads(o)
+	except:
+		pass
+
+	# Defaults
+	for k,v in {'ignorePlatforms':[], 'ignoreGames':[], 'rename':{}, 'merge':[], 'sortAs':{}, 'customSort':[]}.items():
+		if (k in o) and o[k]:
+			continue
+		o[k] = v
+
+	return o
+loadOptions.removeComments = re.compile(r'\/\*.*?\*\/')
 
 def roman_numeral(s):
 	""" Returns a roman numeral converted to an integer if valid, or the source string """
@@ -230,12 +252,11 @@ description.paragraphs = {
 	'exists': re.compile(r'^\s*(<p[^>]*>)\s*'),
 }
 
-def delist(s, bConvertToString=True):
+def delist(s):
 	""" Explodes a list into a nicely spaced list """
 	if not s:
-		return s
-	s = literal_eval(s)
-	return s if not bConvertToString else ', '.join(s)
+		return ''
+	return ', '.join(s)
 
 def pathFromURL(imageURL):
 	""" Transforms an image URL into a list of relative image paths """
@@ -258,6 +279,8 @@ def platformIcons(platformNames, bIconName=False):
 	""" Tag placeholders for SVG symbols generator """
 	icons = ''
 	for platformName in platformNames:
+		if platformName in options['ignorePlatforms']:
+			continue
 		if bIconName:
 			iconName = platformName
 		else:
@@ -270,7 +293,7 @@ def platformIcons(platformNames, bIconName=False):
 platformIcons.icons = ['apple-arcade', 'battlenet', 'bethesda', 'discord', 'epic', 'ffxiv', 'gamecube', 'generic', 'gog', 'gw2', 'humble', 'itch', 'minecraft', 'nintendo-switch', 'nintendo', 'origin', 'paradox', 'pathofexile', 'playstation2', 'psn', 'rockstar', 'steam', 'twitch', 'uplay', 'wargaming', 'xboxone']
 platformIcons.short = {"3do": "3DO Interactive Multiplayer", "3ds": "Nintendo 3DS", "aion": "Aion", "aionl": "Aion: Legions of War", "amazon": "Amazon", "amiga": "Amiga", "arc": "ARC", "atari": "Atari 2600", "battlenet": "Battle.net", "bb": "BestBuy", "beamdog": "Beamdog", "bethesda": "Bethesda.net", "blade": "Blade & Soul", "c64": "Commodore 64", "d2d": "Direct2Drive", "dc": "Dreamcast", "discord": "Discord", "dotemu": "DotEmu", "egg": "Newegg", "elites": "Elite Dangerous", "epic": "Epic Games Store", "eso": "The Elder Scrolls Online", "fanatical": "Fanatical", "ffxi": "Final Fantasy XI", "ffxiv": "Final Fantasy XIV", "fxstore": "Placeholder", "gamehouse": "GameHouse", "gamesessions": "GameSessions", "gameuk": "GAME UK", "generic": "Other", "gg": "GamersGate", "glyph": "Trion World", "gmg": "Green Man Gaming", "gog": "GOG", "gw": "Guild Wars", "gw2": "Guild Wars 2", "humble": "Humble Bundle", "indiegala": "IndieGala", "itch": "Itch.io", "jaguar": "Atari Jaguar", "kartridge": "Kartridge", "lin2": "Lineage 2", "minecraft": "Minecraft", "n64": "Nintendo 64", "ncube": "Nintendo GameCube", "nds": "Nintendo DS", "neo": "NeoGeo", "nes": "Nintendo Entertainment System", "ngameboy": "Game Boy", "nswitch": "Nintendo Switch", "nuuvem": "Nuuvem", "nwii": "Wii", "nwiiu": "Wii U", "oculus": "Oculus", "origin": "Origin", "paradox": "Paradox Plaza", "pathofexile": "Path of Exile", "pce": "PC Engine", "playasia": "Play-Asia", "playfire": "Playfire", "ps2": "PlayStation 2", "psn": "PlayStation Network", "psp": "PlayStation Portable", "psvita": "PlayStation Vita", "psx": "PlayStation", "riot": "Riot", "rockstar": "Rockstar Games Launcher", "saturn": "Sega Saturn", "sega32": "32X", "segacd": "Sega CD", "segag": "Sega Genesis", "sms": "Sega Master System", "snes": "Super Nintendo Entertainment System", "stadia": "Google Stadia", "star": "Star Citizen", "steam": "Steam", "test": "Test", "totalwar": "Total War", "twitch": "Twitch", "unknown": "Unknown", "uplay": "Uplay", "vision": "ColecoVision", "wargaming": "Wargaming", "weplay": "WePlay", "winstore": "Windows Store", "xboxog": "Xbox", "xboxone": "Xbox Live", "zx": "ZX Spectrum PC"}
 
-def Main(args):
+def Main(args, options):
 	games = []
 	articles = '(' + '|'.join([
 		r'an?\s+', r'the\s+',  # English
@@ -318,12 +341,23 @@ def Main(args):
 
 			# Fix common problems with titles
 			for i in titleReplaceList:
-				row['title'] = re.sub(i[0], i[1], row['title'])
+				row['title'] = clean(re.sub(i[0], i[1], row['title']))
+
+			# Skip or rename according to the user options
+			if row['title'] in options['ignoreGames']:
+				continue
+			if row['title'] in options['rename']:
+				row['title'] = options['rename'][row['title']]
 
 			# Transliterate and transform the title in a sortable/searchable ascii format
-			row['_titleTL'] = re.sub(r'^' + articles + r'(.+?)$', r'\2, \1', unidecode(row['title']).lower()).strip()
+			if row['title'] in options['sortAs']:
+				# Custom sort name according to the user options
+				row['_titleTL'] = options['sortAs'][row['title']]
+			else:
+				row['_titleTL'] = re.sub(r'^' + articles + r'(.+?)$', r'\2, \1', unidecode(row['title']).lower()).strip()
 			for i in transliteratedTitleReplaceList:
 				row['_titleTL'] = re.sub(i[0], i[1], row['_titleTL'])
+			row['_titleTL'] = str.casefold(row['_titleTL'])
 
 			# Facilitate searches
 			row['_searchable'] = list(set([row['title'].lower(), row['_titleTL']]))
@@ -337,11 +371,55 @@ def Main(args):
 			# Try a roman numerals to digits conversion
 			searchItem = ' '.join([roman_numeral(x) for x in searchItem.split(' ')])
 			if searchItem not in row['_searchable']:
-				row['_searchable'].append(searchItem)
+				['_searchable'].append(searchItem)
+			
+			# Clean up the rest of the data for usage
+			for k in ['developers', 'dlcs', 'platformList', 'publishers', 'genres', 'themes']:
+				row[k] = literal_eval(row[k]) if row[k] else []
+			for k in ['releaseDate', 'criticsScore']:
+				row[k] = clean(row[k])
 
 			games.append(row)
 
-	games = natsorted(games, key=itemgetter('_titleTL'))
+	# Merge items based on the chosen list
+	for m in options['merge']:
+		for i in range(0, len(m)):
+			m[i] = clean(m[i])  # Match string escaping
+		try:
+			minto = next(games.index(x) for x in games if x['title'] == m[0])
+		except StopIteration:
+			continue
+		mitems = [games.index(x) for x in games if x['title'] in m and games.index(x) != minto]
+		for item in sorted(mitems, reverse=True):
+			for k in ['_searchable', 'developers', 'platformList', 'genres', 'themes']:
+				games[minto][k] = list(set(games[minto][k] + games[item][k]))
+			if games[minto]['releaseDate'] > games[item]['releaseDate']:
+				games[minto]['releaseDate'] = games[item]['releaseDate']
+			try:    pt1 = int(games[minto]['gameMins'])
+			except: pt1 = 0
+			try:    pt2 = int(games[item]['gameMins'])
+			except: pt2 = 0
+			games[minto]['gameMins'] = pt1 + pt2
+
+			del games[item]
+
+	# Casefold the transliterated title and sort the games by it
+	def sortableTitle(a, b):
+		for cs in options['customSort']:
+			if (a['title'] in cs) and (b['title'] in cs):
+				ai = cs.index(a['title'])
+				bi = cs.index(b['title'])
+				if ai == bi:
+					return 0
+				elif ai < bi:
+					return -1
+				else:
+					return 1
+		if a['_titleTL'] == b['_titleTL']:
+			return 0
+		ns = natsorted([a['_titleTL'], b['_titleTL']])
+		return -1 if ns[0] == a['_titleTL'] else 1
+	games = sorted(games, key=cmp_to_key(sortableTitle))
 
 	# Export list of images
 	if args.imageList:
@@ -419,13 +497,14 @@ def Main(args):
 
 			params = {
 				'id': gameID,
-				'title': clean(game['title']),
+				'title': game['title'],
 				'description': description(game['summary']),
+				'dlcs': delist(game['dlcs']),
 				'search': json.dumps(game['_searchable']).replace("'", "&apos;"),
-				'developers': clean(delist(game['developers'])),
-				'platforms': platformIcons(delist(game['platformList'], False)),
+				'developers': delist(game['developers']),
+				'platforms': platformIcons(game['platformList']),
 				'score': game['criticsScore'],
-				'publishers': clean(delist(game['publishers'])),
+				'publishers': delist(game['publishers']),
 				'released': game['releaseDate'],
 				'genres': delist(game['genres']),
 				'themes': delist(game['themes']),
@@ -549,9 +628,11 @@ if "__main__" == __name__:
 		description='GOG Galaxy 2 export converter: parses the “GOG Galaxy 2 exporter” CSV to generate a list of cover images and/or a searchable HTML5 list of games.'
 	)
 
+	# Might extend options to allow pre-compiled command lists in the future
+	options = loadOptions()
 	if args.anyOption(['delimiter', 'fileCSV', 'fileImageList', 'fileHTML', 'title', 'debugEntryID']):
 		if exists(args.fileCSV):
-			Main(args)
+			Main(args, options)
 		else:
 			print('Unable to find “{}”, make sure to specify the proper path with “-i” (see --help)'.format(args.fileCSV))
 	else:

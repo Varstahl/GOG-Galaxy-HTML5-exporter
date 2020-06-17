@@ -1,0 +1,80 @@
+{
+    /* Don't show these platform icons */
+    "ignorePlatforms": ["Amazon"],
+    /* Don't show these games */
+    "ignoreGames": [
+        "Galaxy Beta",
+        "Hacker Evolution Source Code",
+        "Hotline Miami 2: Wrong Number – Digital Comics",
+        "Outlast: Whistleblower",
+        "Surgeon Simulator – Anniversary Edition Content",
+        "The Witcher 3: Wild Hunt – Expansion Pass",
+        "The Witcher Adventure Game (online beta)"
+    ],
+    /* Fix incorrect titles */
+    "rename": {
+        "1979 Revolution:Black Friday": "1979 Revolution: Black Friday",
+        "Duplicate Contradiction – the all-video murder mystery adventure": "Contradiction – the all-video murder mystery adventure",
+        "duplicate DYNASTY WARRIORS 8: Xtreme Legends Complete Edition": "DYNASTY WARRIORS 8: Xtreme Legends Complete Edition"
+    },
+    /* Merge the [2nd:N] games into the first */
+    "merge": [
+        ["Beat Hazard", "Beat Hazard Ultra"],
+        ["Dungeon Keeper™", "Dungeon Keeper Gold™"],
+        ["Hellblade: Senua's Sacrifice", "Hellblade: Senua's Sacrifice VR Edition"],
+        ["Hello Neighbor", "Hello Neighbor Alpha Version"],
+        ["Letter Quest: Grimm's Journey – Remastered", "Letter Quest: Grimm's Journey"],
+        ["Ori and the Blind Forest", "Ori and the Blind Forest: Definitive Edition"],
+        ["Rochard", "Rochard + Hard Times DLC"],
+        ["Shadow Warrior", "Shadow Warrior (2013) DirectX 11 Version"],
+        ["The Ship: Murder Party", "The Ship: Single Player"],
+        ["Snake Pass"],
+        ["Stealth Inc 2: A Game of Clones", "duplicate Stealth Inc 2"],
+        ["Tropico 3 Gold Edition", "Tropico 3 – Steam Special Edition"],
+        ["The Witcher 3: Wild Hunt", "The Witcher 3: Wild Hunt – Game of the Year Edition"]
+    ],
+    /* Alternative sorting names for the games */
+    "sortAs": {
+        "Alien Breed: Impact": "alien breed 1",
+        "Defense Grid: The Awakening": "defense grid 1",
+        "Dungeon Keeper Gold™": "dungeon keeper",
+        "Final Fantasy IV": "final fantasy 4",
+        "Final Fantasy V": "final fantasy 5",
+        "Final Fantasy VI": "final fantasy 6",
+        "Final Fantasy VII": "final fantasy 7",
+        "Final Fantasy VIII": "final fantasy 8",
+        "Final Fantasy IX": "final fantasy 9",
+        "Final Fantasy X/X-2 HD Remaster": "final fantasy 10",
+        "Final Fantasy XII: The Zodiac Age": "final fantasy 12",
+        "Final Fantasy XV: Windows Edition": "final fantasy 15",
+        "Mobius Final Fantasy": "final fantasy, mobius",
+        "The Jackbox Party Pack": "jackbox party pack 1",
+        "Lego Batman: The Video Game": "lego batman 1",
+        "System Shock: Enhanced Edition": "system shock 1",
+        "Team Fortress Classic": "team fortress 1",
+        "PAC-MAN Championship Edition DX+": "pac-man championship edition 1",
+        "PAYDAY: The Heist": "payday 1",
+        "Saints Row: The Third": "saints row 3",
+        "Saints Row IV": "saints row 4",
+        "Saints Row: Gat out of Hell": "saints row 4 2",
+        "The Witcher: Enhanced Edition": "witcher 1, the"
+    },
+    /* Provide an order of titles in the series order */
+    "customSort": [
+        ["Giana Sisters: Twisted Dreams", "Giana Sisters: Rise of the Owlverlord", "Giana Sisters: Dream Runners"],
+        ["The Blackwell Legacy", "Blackwell Unbound", "The Blackwell Convergence", "The Blackwell Deception", "The Blackwell Epiphany"],
+        ["Deus Ex: Game of the Year Edition", "Deus Ex: Invisible War", "Deus Ex: Human Revolution", "Deus Ex: Mankind Divided"],
+        ["The Elder Scrolls V: Skyrim", "The Elder Scrolls V: Skyrim Special Edition"],
+        ["Elite: Dangerous", "Elite Dangerous: Arena"],
+        ["Fallout", "Fallout 2 Classic", "Fallout Tactics Classic", "Fallout 3", "Fallout: New Vegas", "Fallout 4"],
+        ["Hexcells", "Hexcells Plus", "Hexcells Infinite"],
+        ["Holy Potatoes! A Weapon Shop?!", "Holy Potatoes! We’re in Space?!", "Holy Potatoes! What the Hell?!", "Holy Potatoes! A Spy Story?!", "Holy Potatoes! I'm A Hero?!"],
+        ["King's Bounty: The Legend", "King's Bounty: Crossworlds GOTY"],
+        ["Legacy of Kain: Blood Omen", "Legacy of Kain: Soul Reaver", "Legacy of Kain: Blood Omen 2", "Legacy of Kain: Soul Reaver 2", "Legacy of Kain: Defiance"],
+        ["Life is Strange", "Life is Strange: Before the Storm", "Life is Strange 2"],
+        ["Oddworld: Abe's Oddysee", "Oddworld: New 'n' Tasty!", "Oddworld: Abe's Exoddus", "Oddworld: Munch's Oddysee", "Oddworld: Stranger's Wrath HD", "Oddworld: Soulstorm"],
+        ["Shadow Warrior Classic Complete", "Shadow Warrior", "Shadow Warrior 2"],
+        ["Warhammer 40,000: Dawn of War – Game of the Year Edition", "Warhammer 40,000: Dawn of War – Winter Assault", "Warhammer 40,000: Dawn of War – Dark Crusade", "Warhammer 40,000: Dawn of War – Soulstorm" ],
+        ["Warhammer 40,000: Dawn of War II", "Warhammer 40,000: Dawn of War II – Chaos Rising", "Warhammer 40,000: Dawn of War II – Retribution"]
+    ]
+}
