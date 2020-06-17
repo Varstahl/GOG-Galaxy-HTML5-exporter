@@ -9,8 +9,8 @@ from html.parser import HTMLParser
 import json
 from math import floor
 from operator import itemgetter
-from os import getcwd, makedirs, rename, remove
-from os.path import join, exists
+from os import getcwd, listdir, makedirs, rename, remove
+from os.path import isfile, join, exists
 import re
 from string import Formatter
 
@@ -420,6 +420,20 @@ def Main(args, options):
 		ns = natsorted([a['_titleTL'], b['_titleTL']])
 		return -1 if ns[0] == a['_titleTL'] else 1
 	games = sorted(games, key=cmp_to_key(sortableTitle))
+
+	# Purge the old images that are no longer in use
+	images = ['images/{}'.format(f) for f in listdir('images') if ('.keep' != f) and isfile(join('images', f))]
+	delCount = 0
+	failCount = 0
+	for image in images:
+		if not any(x for x in games if image in x['_defaultImagePaths']):
+			try:
+				remove(image)
+				delCount += 1
+			except:
+				failCount += 1
+	if delCount: print('Purged {} unused image{}'.format(delCount, 's' if 1 != delCount else ''))
+	if failCount: print('Failed to purge {} unused image{}'.format(failCount, 's' if 1 != failCount else ''))
 
 	# Export list of images
 	if args.imageList:
