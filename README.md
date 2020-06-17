@@ -2,7 +2,7 @@
 
 This script helps users convert the CSV data exported through [GOG Galaxy Export Script](https://github.com/AB1908/GOG-Galaxy-Export-Script) to a nice, searchable, customizable HTML5 format.
 
-![Screenshot](https://user-images.githubusercontent.com/284077/84387704-b5940200-abf3-11ea-9cf4-058c20d4049b.png)
+![Screenshot](https://user-images.githubusercontent.com/284077/84957536-acc39480-b0fb-11ea-9df0-4ca14db38731.png)
 
 ## Features
 
