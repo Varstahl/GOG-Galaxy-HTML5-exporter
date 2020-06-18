@@ -45,15 +45,13 @@ document.addEventListener("DOMContentLoaded", function() {
             // the view, and there's enough space to fit it in the other direction.
             const bRight = (w < (x + t.offsetWidth)) && (0 <= (x - t.offsetWidth));
             const bBottom = (h < (y + t.offsetHeight)) && (0 <= (y - t.offsetHeight));
-            const pos = bRight + 2 * bBottom;
+            const pos = bRight + 2 * bBottom;  // Boolean to bit scalar
             var newX = x - (bRight ? t.offsetWidth : 0);
             var newY = y - (bBottom ? t.offsetHeight : 0);
-            t.style.top  = newY + 'px';
-            t.style.left = newX + 'px';
+            Object.assign(t.style, {left: newX + 'px', top: newY + 'px'});
 
             for (var i = 0; i < 4; i++) {
-                if (i == pos) t.classList.add(corners[i]);
-                if (i != pos) t.classList.remove(corners[i]);
+                t.classList[i == pos ? 'add' : 'remove'](corners[i]);
             }
         }
     }
@@ -203,14 +201,15 @@ document.addEventListener("DOMContentLoaded", function() {
             if (element.id) {
                 const t = getTooltip(element);
                 updateTooltipPos.tooltip = t;
-                if ('' === t.style.opacity)
+                if ('' === t.style.visibility)
                     initTooltip(t);
-                t.style.opacity = 0;
-                setTimeout(function(e) {e.style.opacity = 1;}, 25, t);
+                t.style.visibility = 'hidden';
                 updateTooltipPos(X, Y);
                 bCursorShow = false;
                 overlay.style.cursor = 'none';
                 element.classList.add('hover');
+                // Delay the visualisation to remove glitches
+                setTimeout(function(e) {e.style.visibility = 'visible';}, 1, t);
             }
 
             lastElement = element;
