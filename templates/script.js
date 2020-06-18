@@ -13,31 +13,6 @@ document.addEventListener("DOMContentLoaded", function() {
         bCursorShow = true,             // Should the cursor be shown again?
         lastElement = {'id': null};     // Last element with an active tooltip
 
-    if (typeof document !== 'undefined' && typeof document.elementsFromPoint === 'undefined') {
-        /* https://github.com/JSmith01/elementsfrompoint-polyfill/blob/master/index.js */
-        document.elementsFromPoint = function(x, y) {
-            var elements = [];
-            var pointerEvents = [];
-            var el;
-        
-            do {
-                if (el !== document.elementFromPoint(x, y)) {
-                    el = document.elementFromPoint(x, y);
-                    elements.push(el);
-                    pointerEvents.push(el.style.pointerEvents);
-                    el.style.pointerEvents = 'none';
-                } else {
-                    el = null;
-                }
-            } while (el);
-        
-            for (var i = 0; i < elements.length; i++) {
-                elements[i].style.pointerEvents = pointerEvents[i];
-            }
-            return elements;
-        }
-    }
-
     /* Python equivalent of string formatting */
     String.prototype.format = function() {
         var args = arguments;
@@ -200,15 +175,12 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         // Based on current mouse coordinates find the relative game card
-        const elements = document.elementsFromPoint(X, Y);
         var element = {'id': null};
         if ('mouseout' !== event.type) {
-            for (i in elements) {
-                if (elements[i].id.startsWith('game-')) {
-                    element = elements[i];
-                    break;
-                }
-            }
+            const elements = document.elementsFromPoint(X, Y);
+            // .overlay #game-ID html
+            if (3 == elements.length)
+                element = elements[1];
         }
 
         if (element.id == lastElement.id) {

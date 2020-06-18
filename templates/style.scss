@@ -22,6 +22,7 @@ html, body {
     margin: 0;
     padding: 0;
     min-height: 100vh;
+    pointer-events: none;
 }
 
 body {
@@ -52,6 +53,7 @@ svg.platforms {
 
 /* Controls */
 #controls {
+    pointer-events: initial;
     display: none;
     position: sticky;
     z-index: 10;
@@ -76,6 +78,7 @@ svg.platforms {
 }
 
 #overlay {
+    pointer-events: initial;
     z-index: 5;
     position: fixed;
     top: 0;
@@ -111,6 +114,10 @@ svg.platforms {
 
 /* Game card */
 .game {
+    pointer-events: initial;
+    > * {
+        pointer-events: none;
+    }
     width: var(--cover-width);
     display: inline-block;
     background-size: cover;
