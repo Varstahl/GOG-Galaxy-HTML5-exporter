@@ -119,12 +119,20 @@ svg.platforms {
         3px 4px 9px rgba(0, 0, 0, 0.4);  /* drop shadow */
     /*aspect-ratio: 342 / 482; /* Currently unsupported by most browsers, gotta hack it with padding-top below */
     &::after {
-        content: "";
+        content: '';
         display: block;
         padding-top: 140.93567251461988304093567251462%;
     }
-    &.hover .data {
-        display: block;
+    &.hover {
+        &::after {
+            background: $highlight;
+            z-index: 2;
+            mix-blend-mode: hard-light;
+        }
+        .data {
+            display: block;
+            z-index: 3;
+        }
     }
     .data {
         position: fixed;
