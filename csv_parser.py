@@ -374,8 +374,11 @@ def Main(args, options):
 				['_searchable'].append(searchItem)
 			
 			# Clean up the rest of the data for usage
-			for k in ['developers', 'dlcs', 'platformList', 'publishers', 'genres', 'themes']:
-				row[k] = literal_eval(row[k]) if row[k] else []
+			for k in ['developers', 'dlcs', 'platformList', 'publishers', 'genres', 'themes', 'tags']:
+				if args.pythonLists:
+					row[k] = literal_eval(row[k]) if row[k] else []
+				else:
+					row[k] = row[k].split(args.delimiter)
 			for k in ['releaseDate', 'criticsScore']:
 				row[k] = clean(row[k])
 
@@ -578,7 +581,7 @@ if "__main__" == __name__:
 			[
 				['-d'],
 				{
-					'default': ',',
+					'default': '\t',
 					'type': str,
 					'required': False,
 					'metavar': 'CHARACTER',
@@ -648,6 +651,7 @@ if "__main__" == __name__:
 					'dest': 'debugEntryID',
 				}
 			],
+			[['--py-lists'], ba('pythonLists', 'the CSV has Python parseable instead of delimiter separated strings')],
 		],
 		description='GOG Galaxy 2 export converter: parses the “GOG Galaxy 2 exporter” CSV to generate a list of cover images and/or a searchable HTML5 list of games.'
 	)
