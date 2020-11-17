@@ -483,7 +483,7 @@ def Main(args, options):
 			if args.embed or (k not in ['script', 'style']):
 				with open(fn, 'r', encoding='utf-8') as f:
 					templates[k] = CustomStringFormatter(f.read(-1))
-					if 'style' is k:  # We can infer embedding
+					if 'style' == k:  # We can infer embedding
 						templates[k] = templates[k].replace('../assets/fonts/', 'assets/fonts/')
 			else:
 				templates[k] = fn
