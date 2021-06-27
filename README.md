@@ -13,6 +13,13 @@ This script helps users convert the CSV data exported through [GOG Galaxy Export
 
 ## Usage
 
+### Standard example
+```
+python csv_parser.py --image-list
+wget -nc -P images -i ./imagelist.txt
+python csv_parser.py --html5
+```
+
 ### CLI
 
 #### File specification
@@ -25,6 +32,10 @@ This script helps users convert the CSV data exported through [GOG Galaxy Export
 * `--html5` creates the HTML5 game library
   * `--title` custom title for the html page
   * `--embed` embeds .css and .js files instead of linking them
+
+**Note:** while exporting, a few other actions are automatically performed:
+* delete unused images that have been replaced in the catalog
+* `--html5`: rename image files to remove the HTML5 attributes if necessary (i.e. renames `image.webp?namespace=gamesdb` into `image.webp`)
 
 ### Customization
 

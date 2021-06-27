@@ -357,10 +357,10 @@ def Main(args, options):
 				row['_titleTL'] = re.sub(r'^' + articles + r'(.+?)$', r'\2, \1', unidecode(row['title']).lower()).strip()
 			for i in transliteratedTitleReplaceList:
 				row['_titleTL'] = re.sub(i[0], i[1], row['_titleTL'])
-			row['_titleTL'] = str.casefold(row['_titleTL'])
+			row['_titleTL'] = str.casefold(row['_titleTL']).replace('&quot;', '')
 
 			# Facilitate searches
-			row['_searchable'] = list(set([row['title'].lower(), row['_titleTL']]))
+			row['_searchable'] = list(set([row['title'].lower().replace('&quot;', ''), row['_titleTL']]))
 			searchItem = row['_titleTL']
 			for srl in searchReplaceList:
 				for i in srl:
@@ -453,7 +453,7 @@ def Main(args, options):
 					bFound = True
 					break
 			if not bFound:
-				images.append(game['_defaultImage'])
+				images.append(game['_defaultImage'].replace('https://', 'http://'))
 
 		if not images:
 			try:
@@ -507,6 +507,7 @@ def Main(args, options):
 		gameID = (gameID + 1000 - (gameID % 1000))  # Round it up to the thousands
 		games_html = ''
 		games_css = ''
+		rename_count = 0
 		for game in games:
 			gameID += 1
 			if args.debugEntryID and (gameID not in args.debugEntryID):
@@ -517,6 +518,7 @@ def Main(args, options):
 				if exists(game['_defaultImagePaths'][p]):
 					try:
 						rename(game['_defaultImagePaths'][p], game['_defaultImagePaths'][0])
+						rename_count += 1
 					except:
 						try:
 							remove(game['_defaultImagePaths'][p])
@@ -544,6 +546,9 @@ def Main(args, options):
 			# Remove parameters already printed
 			repeatable_fields.params = {x:params[x] for x in params if x not in templates['game'].used_keys() and isinstance(x, str)}
 			games_html += re.sub(r'(\s*){rep}(.*?){/rep}', repeatable_fields, game_html)
+
+		if rename_count:
+			print('Renamed {} images'.format(rename_count))
 
 		try:
 			with open(args.fileHTML, 'w', encoding='utf-8') as f:
