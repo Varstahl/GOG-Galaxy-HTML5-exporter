@@ -11,6 +11,10 @@
         "The Witcher 3: Wild Hunt – Expansion Pass",
         "The Witcher Adventure Game (online beta)"
     ],
+    "ignoreTags": [
+        "Done",
+        "NoStream"
+    ],
     /* Fix incorrect titles */
     "rename": {
         "1979 Revolution:Black Friday": "1979 Revolution: Black Friday",
