@@ -344,7 +344,7 @@ def Main(args, options):
 				row['title'] = clean(re.sub(i[0], i[1], row['title']))
 
 			# Skip or rename according to the user options
-			if row['title'] in options['ignoreGames']:
+			if row['title'] in options['ignoreGames'] or not set(row['tags']).isdisjoint(options['ignoreTags']):
 				continue
 			if row['title'] in options['rename']:
 				row['title'] = options['rename'][row['title']]
