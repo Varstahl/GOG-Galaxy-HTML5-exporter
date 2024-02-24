@@ -7,6 +7,7 @@ from functools import cmp_to_key
 from html import escape
 from html.parser import HTMLParser
 import json
+import os
 from math import floor
 from operator import itemgetter
 from os import getcwd, listdir, makedirs, rename, remove
@@ -106,7 +107,7 @@ def loadOptions():
 		pass
 
 	# Defaults
-	for k,v in {'ignorePlatforms':[], 'ignoreGames':[], 'rename':{}, 'merge':[], 'sortAs':{}, 'customSort':[]}.items():
+	for k,v in {'ignorePlatforms':[], 'ignoreGames':[], 'rename':{}, 'merge':[], 'sortAs':{}, 'customSort':[], 'ignoreTags': [] }.items():
 		if (k in o) and o[k]:
 			continue
 		o[k] = v
@@ -344,7 +345,7 @@ def Main(args, options):
 				row['title'] = clean(re.sub(i[0], i[1], row['title']))
 
 			# Skip or rename according to the user options
-			if row['title'] in options['ignoreGames']:
+			if row['title'] in options['ignoreGames'] or not set(row['tags']).isdisjoint(options['ignoreTags']):
 				continue
 			if row['title'] in options['rename']:
 				row['title'] = options['rename'][row['title']]
@@ -423,6 +424,14 @@ def Main(args, options):
 		ns = natsorted([a['_titleTL'], b['_titleTL']])
 		return -1 if ns[0] == a['_titleTL'] else 1
 	games = sorted(games, key=cmp_to_key(sortableTitle))
+
+	# Rename files before purge process
+	images_dir = "images"
+	for filename in os.listdir(images_dir):		
+		index = filename.find(".webp")
+		if index != -1:
+			mew_name = filename[:index] + ".webp" 
+			os.rename(os.path.join(images_dir, filename), os.path.join(images_dir, mew_name))
 
 	# Purge the old images that are no longer in use
 	images = ['images/{}'.format(f) for f in listdir('images') if ('.keep' != f) and isfile(join('images', f))]
